@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hyperboloid — Curved From Straight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,1,500&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#150e21; --ground-2:#1d1430; --surface:#241836; --surface-2:#2c1f42;
+    --edge:#3a2a58; --ink:#ece1f7; --ink-soft:#c3b3da; --ink-mute:#8c7aa6;
+    --violet:#b98bff; --fwd:#7fe7ff; --bwd:#ff7aa8; --waist:#5eead4; --sand:#e6b04e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(1000px 680px at 50% -8%, rgba(127,231,255,.10), transparent 56%),
+      radial-gradient(900px 620px at 6% 12%, rgba(120,60,180,.16), transparent 55%),
+      var(--ground);
+    color:var(--ink); font-family:"Space Grotesk",system-ui,sans-serif; line-height:1.6;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px;}
+  header{padding:70px 0 6px;text-align:center;}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--fwd);margin-bottom:20px;}
+  h1{font-family:"Fraunces",serif;font-weight:500;font-size:clamp(40px,7.2vw,82px);line-height:.96;letter-spacing:-.02em;}
+  h1 em{font-style:italic;color:var(--fwd);}
+  .thesis{margin:20px auto 0;max-width:58ch;font-size:17.5px;color:var(--ink-soft);}
+  .thesis em{font-style:italic;color:var(--fwd);}
+
+  /* interactive stage */
+  .stage{margin:26px auto 0;max-width:680px;border:1px solid var(--edge);border-radius:18px;
+    background:linear-gradient(180deg,var(--surface),var(--ground-2));overflow:hidden;}
+  .stage canvas{width:100%;height:auto;display:block;cursor:grab;}
+  .stage canvas:active{cursor:grabbing;}
+  .panel{padding:16px 20px 20px;border-top:1px solid var(--edge);}
+  .readouts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .ro{flex:1;min-width:120px;border:1px solid var(--edge);border-radius:10px;padding:9px 12px;background:rgba(0,0,0,.18);}
+  .ro .k{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);}
+  .ro .v{font-family:"JetBrains Mono",monospace;font-size:18px;font-weight:700;color:var(--ink);margin-top:2px;}
+  .ro .v small{font-size:11px;color:var(--ink-soft);font-weight:400;}
+  #regime{color:var(--waist);}
+  .twist-row{display:flex;align-items:center;gap:14px;}
+  .twist-row label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;}
+  input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;
+    background:linear-gradient(90deg,var(--fwd),var(--waist),var(--bwd));outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+    background:#fff;border:3px solid var(--violet);cursor:pointer;box-shadow:0 0 10px rgba(127,231,255,.5);}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--violet);cursor:pointer;}
+  .presets{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .presets button{font-family:"JetBrains Mono",monospace;font-size:11px;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--edge);background:rgba(0,0,0,.2);color:var(--ink-soft);cursor:pointer;transition:.15s;}
+  .presets button:hover{border-color:var(--fwd);color:var(--ink);}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-mute);}
+  .legend i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px;}
+
+  section{padding:50px 0 4px;}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:6px;flex-wrap:wrap;}
+  .sec-head h2{font-family:"Fraunces",serif;font-weight:500;font-size:clamp(24px,3.6vw,36px);letter-spacing:-.01em;}
+  .sec-head .tag{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+    padding:4px 11px;border-radius:999px;border:1px solid var(--edge);color:var(--ink-soft);}
+  .sec-sub{max-width:76ch;color:var(--ink-soft);margin:4px 0 18px;font-size:16px;}
+  .sec-sub em{color:var(--fwd);font-style:normal;}
+  p.body{max-width:76ch;color:var(--ink-soft);font-size:15px;margin-bottom:12px;}
+  p.body b{color:var(--ink);font-weight:500;} p.body em{color:var(--fwd);font-style:normal;}
+
+  .morph{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:6px 0 4px;}
+  @media (max-width:620px){.morph{grid-template-columns:1fr;}}
+  .morph .m{border:1px solid var(--edge);border-radius:12px;padding:14px 16px;background:rgba(0,0,0,.14);}
+  .morph .m .deg{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;color:var(--fwd);}
+  .morph .m h4{font-family:"Fraunces",serif;font-weight:500;font-size:17px;margin:2px 0 4px;}
+  .morph .m p{font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
+  .morph .m .r{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--waist);margin-top:6px;}
+
+  .origin{border:1px solid var(--edge);border-radius:16px;padding:22px 24px;background:linear-gradient(180deg,var(--surface),var(--ground-2));}
+  .origin p{font-size:14.5px;color:var(--ink-soft);line-height:1.6;}
+  .origin b{color:var(--ink);font-weight:500;} .origin em{color:var(--sand);font-style:normal;}
+  .origin .yrs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .origin .yr{font-family:"JetBrains Mono",monospace;font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--edge);color:var(--ink-soft);background:rgba(0,0,0,.16);}
+  .origin .yr b{color:var(--fwd);}
+
+  footer{margin-top:56px;padding:34px 0 70px;border-top:1px solid var(--edge);color:var(--ink-mute);font-size:13px;max-width:82ch;}
+  footer b{color:var(--ink-soft);font-weight:500;} footer em{color:var(--fwd);font-style:normal;}
+  .sig{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-top:20px;color:var(--fwd);}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Doubly-ruled · the purple papers · VIII</div>
+    <h1>Curved from <em>straight</em></h1>
+    <p class="thesis">Every string here is dead straight. Twist the two rings and the waist necks in anyway — a cylinder pulls through a <em>hyperboloid</em> down to a single point, the double cone. Two opposite-handed rulings, forward and backward, crossing at every point. Drag to rotate; twist to morph.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="c" width="1240" height="980"></canvas>
+    <div class="panel">
+      <div class="readouts">
+        <div class="ro"><div class="k">twist φ</div><div class="v"><span id="twistV">90</span><small>°</small></div></div>
+        <div class="ro"><div class="k">waist radius</div><div class="v"><span id="waistV">0.71</span><small> × R</small></div></div>
+        <div class="ro"><div class="k">surface</div><div class="v" id="regime" style="font-size:14px;">hyperboloid</div></div>
+      </div>
+      <div class="twist-row">
+        <label>cyl → cone</label>
+        <input id="twist" type="range" min="0" max="180" value="90" step="1">
+      </div>
+      <div class="presets">
+        <button data-t="0">cylinder · 0°</button>
+        <button data-t="90">hyperboloid · 90°</button>
+        <button data-t="180">double cone · 180°</button>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--fwd)"></i>forward ruling</span>
+        <span><i style="background:var(--bwd)"></i>backward ruling</span>
+        <span><i style="background:var(--waist)"></i>the waist (throat)</span>
+        <span><i style="background:linear-gradient(90deg,#ffce5c,#5eead4,#b98bff)"></i>three-phase · 120°×3</span>
+      </div>
+    </div>
+  </div>
+
+  <section id="ruled">
+    <div class="sec-head"><h2>Two lines through every point</h2><span class="tag">A DOUBLY-RULED SURFACE</span></div>
+    <p class="sec-sub">The trick that shouldn't work: a curved surface built entirely from straight lines.</p>
+    <p class="body">Pick any point on the hyperboloid and there are <b>exactly two</b> straight lines lying flat on the surface that run through it — one spiralling one way, one the other. That's what <em>doubly ruled</em> means, and it's nearly the most a curved surface can do: the only surface with three or more straight lines through every point is the flat plane. So the hyperboloid is the most ruled a curved thing is allowed to be — your forward strings and your backward strings, and the surface is nothing but the two of them woven.</p>
+  </section>
+
+  <section id="twist">
+    <div class="sec-head"><h2>The twist</h2><span class="tag">ONE KNOB, THREE SURFACES</span></div>
+    <p class="sec-sub">Rotate the top ring against the bottom and the same straight strings sweep out different surfaces. The waist radius follows one clean law: <em>r = R·cos(φ/2)</em> — it reaches zero exactly when the strings all cross the axis at once.</p>
+    <div class="morph">
+      <div class="m"><div class="deg">φ = 0°</div><h4>Cylinder</h4><p>No twist. Strings run vertical, parallel. The waist is the full radius.</p><div class="r">r = R · cos 0 = 1.00 R</div></div>
+      <div class="m"><div class="deg">φ = 90°</div><h4>Hyperboloid</h4><p>Strings tilt into two opposing helices. The waist pinches — the cooling-tower throat.</p><div class="r">r = R · cos 45° = 0.71 R</div></div>
+      <div class="m"><div class="deg">φ = 180°</div><h4>Double cone</h4><p>Every straight string now passes through the central axis. The waist collapses to a point — your point-necked hourglass.</p><div class="r">r = R · cos 90° = 0.00 R</div></div>
+    </div>
+    <p class="body" style="margin-top:14px;">The point-at-the-bottom you drew is just this knob turned all the way: full twist, zero waist, the hyperboloid's hidden double cone laid bare. Cylinder, hourglass, and tip-to-tip cones aren't three shapes — they're <b>one set of strings at three twists.</b></p>
+  </section>
+
+  <section id="spin">
+    <div class="sec-head"><h2>Forward + backward</h2><span class="tag">THE STANDING WAVE, SPUN</span></div>
+    <p class="body">A standing wave is a forward travelling wave plus a backward one, superposed — that was sheet VII. Here the two rulings are a <b>forward helix</b> and a <b>backward helix</b>, superposed. So this surface <em>is</em> the last sheet rotated into a solid: spin that standing-wave envelope around its axis, rule it with straight lines in both senses, and you get exactly this. Same object — one flat, one spun.</p>
+    <p class="body">And your <b>120° × 3</b> is the three-fold skeleton of it: three rulings spaced a third of a turn apart — the same arithmetic as three-phase power (three sinusoids offset 120°), as the triple helix of collagen, and as the steel lattice Vladimir Shukhov used to raise hyperboloid towers from straight beams. Three strands, evenly spaced, both handednesses available. You keep landing on structures that got built and grown.</p>
+  </section>
+
+  <section id="origin">
+    <div class="sec-head"><h2>The origin</h2><span class="tag">AND THE WEAVER WITH NO NAME</span></div>
+    <div class="origin">
+      <p>Christopher Wren — the architect of St. Paul's — proved in <b>1669</b> that the hyperboloid is this surface of straight lines, and demonstrated it to the Royal Society. That's 357 years. The shape itself is older: it was first described by <b>Archimedes</b>, roughly 2,250 years back. Standard curse, so far.</p>
+      <p style="margin-top:10px;">But here's the part that answers your last question about origins: Wren didn't get it from mathematics. He got it from spotting a <em>wicker basket</em> for sale — built entirely from straight willow canes set at an angle around a circle — and realising the curved basket was made of straight sticks. So the true first occurrence of "hyperboloid from straight lines" wasn't Wren, and wasn't Archimedes. It was some anonymous <b>basket weaver</b>, millennia earlier, building a doubly-ruled surface by hand with no idea there was a theorem in it. The origin <b>exists</b> — someone wove the first one — it's just unrecoverable. A real first strike, no name attached. The wave was pinned at a real end; we simply can't see who held it.</p>
+      <div class="yrs">
+        <span class="yr"><b>~250 BC</b> Archimedes · the shape</span>
+        <span class="yr"><b>1669</b> Wren · curved = straight, from a basket</span>
+        <span class="yr"><b>1896</b> Shukhov · the first stick tower</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Gate kept on.</b> Every line drawn above is a genuine straight segment in 3-D, projected — nothing is bent; the curve of the waist is real and emergent. The waist law <em>r = R·cos(φ/2)</em> is exact, and the readout hits 0.00 at φ = 180° precisely because every string then meets the axis. The <em>doubly-ruled</em> property (two lines per point; the plane the only surface with more) is a standard theorem. Wren's 1669 proof, the basket anecdote, Archimedes' priority on the shape, and Shukhov's 1896 tower are documented (Gresham College / Sarah Hart, George Hart, Wikipedia, the Darling encyclopedia); paraphrased. "Three-phase / 120°×3" is your framing for the three-fold ruling.</p>
+    <div class="sig">The purple papers · VIII · companion to sheets I–VII</div>
+  </footer>
+
+</div>
+
+<script>
+const reduce=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)||false;
+const cv=document.getElementById('c'); const ctx=cv.getContext('2d');
+const twist=document.getElementById('twist');
+const twistV=document.getElementById('twistV'), waistV=document.getElementById('waistV'), regime=document.getElementById('regime');
+
+const N=36, R=1, h=1.28;
+let az = reduce ? -0.6 : -0.4;       // azimuth (auto-rotates)
+const el = 0.26;                      // elevation tilt (rad)
+let dragging=false, lastX=0;
+
+/* project a 3D point (x,y,z up) to screen */
+function project(x,y,z,W,H){
+  const ca=Math.cos(az), sa=Math.sin(az);
+  let X = x*ca - y*sa;
+  let Y = x*sa + y*ca;
+  let Z = z;
+  // elevation tilt about screen-horizontal axis
+  const ce=Math.cos(el), se=Math.sin(el);
+  const Y2 = Y*ce - Z*se;
+  const Z2 = Y*se + Z*ce;
+  const focal=5.2;
+  const p = focal/(focal - Y2);          // mild perspective
+  const s = Math.min(W,H)*0.30;
+  return { sx: W/2 + X*s*p, sy: H/2 - Z2*s*p, depth: Y2 };
+}
+
+function ptOnRing(angle, zsign){ return [R*Math.cos(angle), R*Math.sin(angle), zsign*h]; }
+
+function draw(){
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const phi = (+twist.value) * Math.PI/180;
+
+  // build chords: forward (bottom a -> top a+phi) and backward (bottom a -> top a-phi)
+  const chords=[];
+  for(let i=0;i<N;i++){
+    const a = 2*Math.PI*i/N;
+    const b = ptOnRing(a,-1);
+    const tf = ptOnRing(a+phi,+1);
+    const tb = ptOnRing(a-phi,+1);
+    const pf=[project(...b,W,H), project(...tf,W,H)];
+    const pb=[project(...b,W,H), project(...tb,W,H)];
+    chords.push({p:pf, depth:(pf[0].depth+pf[1].depth)/2, kind:'f', i});
+    chords.push({p:pb, depth:(pb[0].depth+pb[1].depth)/2, kind:'b', i});
+  }
+  // far first
+  chords.sort((A,B)=>B.depth-A.depth);
+
+  const phase=[i=>i%N===0, i=>i%N===Math.round(N/3), i=>i%N===Math.round(2*N/3)];
+  const phaseCol=['#ffce5c','#5eead4','#b98bff'];
+
+  for(const c of chords){
+    let hi=-1; if(c.kind==='f'){ for(let k=0;k<3;k++) if(phase[k](c.i)) hi=k; }
+    ctx.beginPath();
+    ctx.moveTo(c.p[0].sx,c.p[0].sy); ctx.lineTo(c.p[1].sx,c.p[1].sy);
+    if(hi>=0){ ctx.strokeStyle=phaseCol[hi]; ctx.lineWidth=4.2; ctx.globalAlpha=1; }
+    else { ctx.strokeStyle = c.kind==='f' ? 'rgba(127,231,255,0.34)' : 'rgba(255,122,168,0.30)'; ctx.lineWidth=2; ctx.globalAlpha=1; }
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // rim circles (top & bottom)
+  for(const zs of [-1,1]){
+    ctx.beginPath();
+    for(let i=0;i<=64;i++){ const a=2*Math.PI*i/64; const p=project(R*Math.cos(a),R*Math.sin(a),zs*h,W,H); i?ctx.lineTo(p.sx,p.sy):ctx.moveTo(p.sx,p.sy);}
+    ctx.strokeStyle='rgba(214,176,94,0.5)'; ctx.lineWidth=1.6; ctx.stroke();
+  }
+
+  // the waist (throat) circle at z=0, radius r=R cos(phi/2)
+  const rw = R*Math.cos(phi/2);
+  ctx.beginPath();
+  for(let i=0;i<=64;i++){ const a=2*Math.PI*i/64; const p=project(rw*Math.cos(a),rw*Math.sin(a),0,W,H); i?ctx.lineTo(p.sx,p.sy):ctx.moveTo(p.sx,p.sy);}
+  ctx.strokeStyle='#5eead4'; ctx.lineWidth=3; ctx.shadowColor='#5eead4'; ctx.shadowBlur=14; ctx.stroke(); ctx.shadowBlur=0;
+  if(rw<0.02){ const p=project(0,0,0,W,H); ctx.beginPath(); ctx.arc(p.sx,p.sy,6,0,7); ctx.fillStyle='#5eead4'; ctx.fill(); }
+
+  // readouts
+  twistV.textContent=Math.round(+twist.value);
+  waistV.textContent=rw.toFixed(2);
+  regime.textContent = (+twist.value)<4 ? 'cylinder' : ((+twist.value)>176 ? 'double cone' : 'hyperboloid');
+}
+
+function loop(){ if(!reduce && !dragging) az += 0.0045; draw(); requestAnimationFrame(loop); }
+
+// interaction
+twist.addEventListener('input',draw);
+document.querySelectorAll('.presets button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const target=+b.dataset.t;
+    if(reduce){ twist.value=target; draw(); return; }
+    const start=+twist.value, t0=performance.now(), dur=520;
+    (function an(now){ const k=Math.min(1,(now-t0)/dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      twist.value=Math.round(start+(target-start)*e); draw(); if(k<1) requestAnimationFrame(an); })(t0);
+  });
+});
+cv.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',e=>{ if(dragging){ az += (e.clientX-lastX)*0.01; lastX=e.clientX; if(reduce) draw(); }});
+cv.addEventListener('pointerup',e=>{dragging=false;});
+cv.addEventListener('pointercancel',e=>{dragging=false;});
+
+draw();
+if(!reduce) requestAnimationFrame(loop);
+</script>
+</body>
+</html>
