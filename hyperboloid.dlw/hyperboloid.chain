@@ -4,6 +4,6 @@ slug  : hyperboloid
 seal  : 4782241a29de2cc524c8245613f0a2098b433341c6d395bf2874d4f3790c3e7b
 prev  : cf7759bf894ae0d7bbdf275fa6cfa000866aba23b6e7a247747084eb2f965818
 link  : 449ec85a0454d083f1ca11a349791fbd708fb9281b9e10f29cbff8c92e622cdc
-head  : 3447d3a0533aaf1e29a8bdc67a9774884fb3ae9dbc8a17064b7a008ca3c4ec90
+head  : 13f9ace173ef2e60af38912ba329b4afcb5a38b84a0e4495e8d30327f8c99cc2
 
 — the tether: link = sha256(index|slug|seal|prev). the chain head commits to the whole corpus.
